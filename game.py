@@ -1,4 +1,6 @@
 import random
+
+
 class Deck:
     def __init__(self, game):
         if game == 'two_players':
@@ -23,13 +25,23 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.cards = []
+        self.cards_number = []  #list of cards and number that represent their position in the
+                                #list. Index starts from 1
 
     
     def show_cards(self):
         print(f'Your cards are {self.cards}')
 
+
+class Table:
+    #Table contains the discarded cards and the ones used to attack
+    def __init__(self):
+        self.cards = []
+        self.attack_cards = []
+
+
 class Match:
-    def __init__(self, players, deck):
+    def __init__(self, players, deck, table):
         '''
         This class represents a match.
 
@@ -43,7 +55,9 @@ class Match:
         self.deck = deck
         for player in self.players:
             for i in range(6):
-                player.cards.append(self.deck.deck.pop())
+                card = self.deck.deck.pop()
+                player.cards.append(card)
+                player.cards_number.append((i+1, card))
    
         self.player_turn = 0
 
@@ -55,14 +69,112 @@ class Match:
         print(f"It's {player.name}'s turn")
         self.player_turn = (self.player_turn + 1) % len(self.players)
         
-        #extracting a card from the deck and eventually checking it
-        if self.deck.deck:
-            card = self.deck.deck.pop(0)
-            player.cards.append(card)
-        else:
-            print('No more cards')
+        #checking if the previous player has used an attack card
+        if table.attack_cards:
+            print(f'Previous attack cards are {table.attack_cards}')
+            attack_card = attack_cards.pop(-1)
 
-        print(f'The extracted card is {card}')
+            if attack_card == 'Attack':
+                print(f'Do you want to use one of your cards? [y/n]\nYour cards are {player.cards}')
+                answer = input()
+
+                #checking that we have a valid input
+                while answer not in ['y', 'n']:
+                    print('You should enter a valid input')
+                    print(f'Do you want to use one of your cards? [y/n]\nYour cards are {player.cards}')
+                    answer = input()
+                
+                #Yes as answer. Use a card: update the player's cards and the table's cards
+                if answer == 'y':
+                    print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
+                    y = int(input())
+                    used_card = player.cards.pop(y-1)
+                    table.attack_cards.append(used_card)
+                    print(f'Now your cards are {player.cards}')
+
+                    print('Do you want to use another card? [y/n]')
+                    answer = input()
+                    while answer != 'n':
+                        print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
+                        y = int(input())
+                        used_card = player.cards.pop(y-1)
+                        table.attack_cards.append(used_card)
+                        print(f'Now your cards are {player.cards}')
+                        print('Do you want to use another card? [y/n]')
+                        answer = input()
+
+                    return    #This player's turn is over
+
+                else:    #Player doesn't use any of his cards
+                    #take twice as many cards as the number of the attack cards
+                    #I have to sum 1 bcs I've popped one 'Attack' card
+                    n_attack = 1 + sum([1 for card in table.attack_cards if card == 'Attack'])
+                    for _ in range(2*n_attack):
+                        if self.deck.deck: #extracting a card from the deck and checking it
+                            card = self.deck.deck.pop(0)
+                            player.cards.append(card)
+                        else:
+                            print('No more cards') #WHAT TO DO IF THERE AREN'T ANY MORE CARDS?'
+                    table.cards.extend(table.attack_cards)   #add the attack cards to the table cards
+                    table.attack_cards = []    #empty the list of attack cards
+
+            else:    #here the attack card is 'Nope'
+                print(f'Do you want to use one of your cards? [y/n]\nYour cards are {player.cards}')       #I could add the fact that you could just use another 'Nope'
+                answer = input()
+                while answer not in ['y', 'n']:
+                    print('You should enter a valid input')
+                    print(f'Do you want to use one of your cards? [y/n]\nYour cards are {player.cards}')
+                    answer = input()
+
+                if answer == 'y':
+                    print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
+                    y = int(input())
+                    used_card = player.cards.pop(y-1)
+                    table.attack_cards.append(used_card)
+                    print(f'Now your cards are {player.cards}')
+                    return #This player's turn is over
+
+                else:
+                    table.cards.extend(table.attack_cards)   #add the attack cards to the table cards
+                    table.attack_cards = []    #empty the list of attack cards
+
+
+
+
+
+
+
+        #if the previous player hasn't used any attack cards then the turn begins by asking if you want to extract a card or if you want to use one
+        print(f'Do you want to extract a card or do you want to use one of yours? [e/u]\nYour cards are {player.cards}')
+        choiche = input()
+        while choiche not in ['e', 'u']:
+            print('You should enter a valid input')
+            print(f'Do you want to extract a card or do you want to use one of yours? [e/u]\nYour cards are {player.cards}')
+            choiche = input()
+
+        if choiche == 'e':    #player chooses to extract a card
+            if self.deck.deck: #extracting a card from the deck and checking it
+                card = self.deck.deck.pop(0)
+                print(f'The extracted card is {card}')
+                player.cards.append(card)
+            else:
+                print('No more cards')
+
+        else:    #player chooses to use a card
+            print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
+            y = int(input())
+            used_card = player.cards.pop(y-1)
+            if used_card in ['Attack', 'None']:
+                table.attack_cards.append(used_card)
+                print(f'Now your cards are {player.cards}')
+                return #This player's turn is over
+            elif used_card in ['Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']:
+                print(f"You're using {used_card}")    #FINISH THIS!!! 
+                #table.cards.append(used_cards)
+                #should add the possibility to use multiple cards
+                #must extract a card
+
+        #Asking to show cards
         print('Do you want to see your cards? [y/n]')
         x = input()
         while x not in ['y', 'n']:
@@ -74,23 +186,11 @@ class Match:
         else:
             print('All right!')
 
-        print('Do you want to discard a cart or do you want to use one? [d/u]')
-        x = input()
-        while x not in ['d', 'u']:
-            print('Your answer must be in the form y or n')
-            x = input()
         
-        cards_number = [(i+1, player.cards[i]) for i in range(len(player.cards))]
-        if x == 'd':
-            print(f'Which card do you want to discard? [Reply with a number]\nYour cards are {cards_number}')
-            y = int(input())
-            player.cards.pop(y-1)
-            print(f'Now your cards are {player.cards}')
-        else:
-            print(f'Which card do you want to use? [Reply with a number]\nYour cards are {cards_number}')
-            y = int(input())
-            player.cards.pop(y-1)
-            print(f'Now your cards are {player.cards}')
-
-
+        #If the player is at this point then it must discard a card
+        print(f'Which card do you want to discard? [Reply with a number]\nYour cards are {player.cards_number}')
+        y = int(input())
+        player.cards.pop(y-1)
+        print(f'Now your cards are {player.cards}')
+        
 
