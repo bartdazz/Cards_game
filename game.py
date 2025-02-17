@@ -100,6 +100,7 @@ class Match:
 
         #choosing the right player for the turn
         player = self.players[self.player_turn]
+        players_number = [('You', self.players[i]) if i == self.player_turn else (i+1, self.players[i]) for i in range(len(self.players))]
         print('-'*100)
         print(f"It's {player.name}'s turn")
         self.player_turn = (self.player_turn + 1) % len(self.players)
@@ -108,6 +109,7 @@ class Match:
         if self.table.attack_cards:
             print(f'Previous attack cards are {self.table.attack_cards}')
             attack_card = self.table.attack_cards.pop(-1)
+            
 
             if attack_card == 'Attack':
                 print(f'Do you want to use one of your cards? [y/n]\n\nYour cards are \n{player.cards}')
@@ -124,15 +126,17 @@ class Match:
                     print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{player.cards_number}')
                     y = int(input())
                     used_card = player.cards.pop(y-1)
+                    player.cards_number.pop(y-1)
                     self.table.attack_cards.append(used_card)
                     print(f'Now your cards are \n{player.cards}')
 
                     print('Do you want to use another card? [y/n]')
                     answer = input()
                     while answer != 'n':
-                        print(f'Which card do you want to use? [Reply with a number]\nYour cards are \n{player.cards_number}')
-                        y = int(input())
+                        print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{player.cards_number}')
+                        y = input()
                         used_card = player.cards.pop(y-1)
+                        player.cards_number.pop(y-1)
                         self.table.attack_cards.append(used_card)
                         print(f'Now your cards are \n{player.cards}')
                         print('Do you want to use another card? [y/n]')
@@ -166,6 +170,7 @@ class Match:
                     print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
                     y = int(input())
                     used_card = player.cards.pop(y-1)
+                    player.cards_number.pop(y-1)
                     self.table.attack_cards.append(used_card)
                     print(f'Now your cards are {player.cards}')
                     return  #This player's turn is over
@@ -173,10 +178,6 @@ class Match:
                 else:
                     self.table.cards.extend(self.table.attack_cards)   #add the attack cards to the table cards
                     self.table.attack_cards = []    #empty the list of attack cards
-
-
-
-
 
 
 
@@ -201,12 +202,45 @@ class Match:
             print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {player.cards_number}')
             y = int(input())
             used_card = player.cards.pop(y-1)
-            if used_card in ['Attack', 'Nope']:
+            player.cards_number.pop(y-1)
+            if used_card not in ['Attack', 'Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']:
+                print("You can't use this card")
+                print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {player.cards_number}')
+                y = int(input())
+
+            if used_card == 'Attack':
                 self.table.attack_cards.append(used_card)
                 print(f'Now your cards are\n{player.cards}')
-                return #This player's turn is over
-            elif used_card in ['Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']:
-                print(f"You're using {used_card}")    #FINISH THIS!!! 
+                answer = 'y'
+                while 'Attack' in player.cards and answer == 'y': 
+                    print('Do you want to use another Attack? [y/n]')
+                    answer = input()
+                    if answer == 'y':
+                        index = player.cards.index('Attack')
+                        self.table.attack_cards.append(player.cards.pop(index))
+                        player.cards_number.pop(index)
+                return print("{player}'s turn is over")
+
+            else:    # and so used_card in ['Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']
+                print(f"You're using {used_card}")    
+                if used_card == 'Favor':
+                    players_number_names = [(el[0], el[1].name) for el in players_number]
+                    print(f"Players are \n{players_number_names}. \nWhich player should do you a favor? [Reply with a number]")
+                    x = int(input())
+                    player_choosen = self.players[x-1]
+                    print(f'{player_choosen.name}, which card do you want to give to {player.name}? [Reply with a number] \n{player_choosen.cards_number}')
+                    x = int(input())
+                    choosen_card = player_choosen.cards.pop(x-1)
+                    player_choosen.cards_number.pop(x-1)
+                    player.cards.append(choosen_card)
+                    player.cards_number.append((len(player.cards), choosen_card))
+                    print(f'Now {player.name}, these are your cards \n{player.cards} and you carry on your turn.')
+                
+               #if used_card == 'Cat Cards':
+               #    cat_cards = [el for el in player.cards_number if el[1] == 'Cat Cards']
+               #    if 
+
+
                 #table.cards.append(used_cards)
                 #should add the possibility to use multiple cards
                 #must extract a card
@@ -228,6 +262,7 @@ class Match:
         print(f'Which card do you want to discard? [Reply with a number]\nYour cards are \n{player.cards_number}')
         y = int(input())
         player.cards.pop(y-1)
+        player.cards_number.pop(y-1)
         print(f'Now your cards are \n{player.cards}')
         
 
