@@ -28,9 +28,10 @@ class Deck:
             print([self.deck[i] for i in range(n)])
 
     def add_card(self, card, pos):
-        aux = self.deck[:, pos]
+        aux = self.deck[:pos]
         aux.append(card)
         aux.extend(self.deck[pos:])
+        self.deck = aux
 
 
 
@@ -200,7 +201,7 @@ class Match:
             choiche = input()
             while choiche not in ['y', 'n']:
                 print('You should enter a valid input')
-                print(f'Your cards are {player.cards}\n\nnDo you want to use a card? The deck still has {len(self.deck.deck)} cards [y/n]')
+                print(f'Your cards are {player.cards}\n\nDo you want to use a card? The deck still has {len(self.deck.deck)} cards [y/n]')
                 choiche = input()
 
             
@@ -309,25 +310,32 @@ class Match:
         if self.deck.deck: #extracting a card from the deck and checking it
             card = self.deck.deck.pop(0)
             if card == 'Exploding Kitten':
-                print('YOU EXPLODED!')
-                if 'Defuser' in player.cards:
-                    print('You must use your Defuser!')
-                    index = player.cards.index('Defuser')
+                print('\n\tYOU EXPLODED!\n')
+                if 'Defuse' in player.cards:
+                    print('You must use your Defuse!')
+                    index = player.cards.index('Defuse')
                     player.cards.pop(index)
-                    print(f'Now your cards are {player.cards}')
+                    print(f'Now your cards are \n{player.cards}\n')
                     print(f'You have to put the Exploding kitten back in the deck of cards. The deck has {len(self.deck.deck)} cards. \nIn which position do you want to put the bomb? [Reply with a number]')
-                    x = int(input())
-                    while x not in range(1, len(self.deck.deck)+1):
+                    test = True
+                    while test:
+                        try:
+                            x = int(input())
+                            test = False
+                        except:
+                            print('Reply with a number')
+                            test = True
+                            x = int(input())
+                    while x not in range(1, len(self.deck.deck)+2):
                         print('Not a position in the deck!')
                         print('In which position do you want to put the bomb? [Reply with a number]')
                         x = int(input())
-                    self.deck.show_deck()
-                    self.deck.add_card('Exploding Kitten', x)
-                    self.deck.show_deck()
+                    self.deck.add_card('Exploding Kitten', x-1)
                 else:
                     print("You don't have any more Defusers! You lost!")
-                    self.players.pop(player)
+                    self.players.pop(self.players.index(player))
                     return 
+            else:
                 print(f'The extracted card is {card}')
             player.cards.append(card)
         else:
@@ -346,5 +354,9 @@ class Match:
             print('All right!')
 
 
-        # def play(self):
-            
+    def play(self):
+        while len(self.players) > 1:
+            self.turn()
+        return 
+
+
