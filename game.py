@@ -1,7 +1,7 @@
 import random
 # to add:
 # after playing Favor the opther player should be able to use a Nope
-# after removing a card I should re index player.cards_number
+# after removing a card I should re index [(i+1, player.cards[i]) for i in range(len(player.cards))]
 
 class Deck:
     def __init__(self, game):
@@ -27,12 +27,18 @@ class Deck:
         else:
             print([self.deck[i] for i in range(n)])
 
+    def add_card(self, card, pos):
+        aux = self.deck[:, pos]
+        aux.append(card)
+        aux.extend(self.deck[pos:])
+
+
 
 class Player:
     def __init__(self, name):
         self.name = name
         self.cards = []
-        self.cards_number = []  # list of cards and number that represent
+        #self.cards_number = []  # list of cards and number that represent
                                 # their position in the list. 
                                 # Index starts from 1
 
@@ -77,7 +83,7 @@ class Match:
         for player in self.players:
             card = defusers.pop()
             player.cards.append(card)
-            player.cards_number.append((1,card))
+            # [(i+1, player.cards[i]) for i in range(len(player.cards))].append((1,card))
         
         #put the defuser back in the deck
         while defusers:
@@ -90,7 +96,7 @@ class Match:
             for i in range(7):
                 card = self.deck.deck.pop()
                 player.cards.append(card)
-                player.cards_number.append((i+2, card))    #I need to use i+2 bcs there is already a diffuser in the player's cards
+                # [(i+1, player.cards[i]) for i in range(len(player.cards))].append((i+2, card))    #I need to use i+2 bcs there is already a diffuser in the player's cards
    
         #adding the bomb to the deck and shuffling again
         while bombs:
@@ -102,7 +108,12 @@ class Match:
 
 
     def turn(self):
-
+        
+        if len(self.players) == 1:
+            print('You won!! Congrats !')
+            print('-'*100)
+            print('Game developed by bartdzz')
+            print('-'*100)
         #choosing the right player for the turn
         player = self.players[self.player_turn]
         players_number = [('You', self.players[i]) if i == self.player_turn else (i+1, self.players[i]) for i in range(len(self.players))]
@@ -128,20 +139,18 @@ class Match:
                 
                 #Yes as answer. Use a card: update the player's cards and the table's cards
                 if answer == 'y':
-                    print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{player.cards_number}')
+                    print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                     y = int(input())
                     used_card = player.cards.pop(y-1)
-                    player.cards_number.pop(y-1)
                     self.table.attack_cards.append(used_card)
                     print(f'Now your cards are \n{player.cards}')
 
                     print('Do you want to use another card? [y/n]')
                     answer = input()
                     while answer != 'n':
-                        print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{player.cards_number}')
-                        y = input()
+                        print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
+                        y = int(input())
                         used_card = player.cards.pop(y-1)
-                        player.cards_number.pop(y-1)
                         self.table.attack_cards.append(used_card)
                         print(f'Now your cards are \n{player.cards}')
                         print('Do you want to use another card? [y/n]')
@@ -157,7 +166,6 @@ class Match:
                         if self.deck.deck: #extracting a card from the deck and checking it
                             card = self.deck.deck.pop(0)
                             player.cards.append(card)
-                            player.cards_number.append((len(player.cards)+1, card))
                         else:
                             print('No more cards') #WHAT TO DO IF THERE AREN'T ANY MORE CARDS?'
                     self.table.cards.extend(self.table.attack_cards)   #add the attack cards to the table cards
@@ -172,10 +180,9 @@ class Match:
                     answer = input()
 
                 if answer == 'y':
-                    print(f'Which card do you want to use? [Reply with a number]\nYour cards are {player.cards_number}')
+                    print(f'Which card do you want to use? [Reply with a number]\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                     y = int(input())
                     used_card = player.cards.pop(y-1)
-                    player.cards_number.pop(y-1)
                     self.table.attack_cards.append(used_card)
                     print(f'Now your cards are {player.cards}')
                     return  #This player's turn is over
@@ -198,13 +205,12 @@ class Match:
 
             
             if choiche == 'y':    #player chooses to use a card
-                print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {player.cards_number}')
+                print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                 y = int(input())
                 used_card = player.cards.pop(y-1)
-                player.cards_number.pop(y-1)
                 if used_card not in ['Attack', 'Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']:
                     print("You can't use this card")
-                    print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {player.cards_number}')
+                    print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                     y = int(input())
 
                 if used_card == 'Attack':
@@ -217,7 +223,6 @@ class Match:
                         if answer == 'y':
                             index = player.cards.index('Attack')
                             self.table.attack_cards.append(player.cards.pop(index))
-                            player.cards_number.pop(index)
                     return print(f"{player.name}'s turn is over")
 
                 else:    # and so used_card in ['Favor', 'Cat Cards', 'See the Future', 'Shuffle', 'Skip']
@@ -227,27 +232,23 @@ class Match:
                         print(f"Players are \n{players_number_names}. \nWhich player should do you a favor? [Reply with a number]")
                         x = int(input())
                         player_choosen = self.players[x-1]
-                        print(f'{player_choosen.name}, which card do you want to give to {player.name}? [Reply with a number] \n{player_choosen.cards_number}')
+                        print(f'{player_choosen.name}, which card do you want to give to {player.name}? [Reply with a number] \n{[(i+1, player_choosen.cards[i]) for i in range(len(player_choosen.cards))]}')
                         x = int(input())
                         choosen_card = player_choosen.cards.pop(x-1)
-                        player_choosen.cards_number.pop(x-1)
                         player.cards.append(choosen_card)
-                        player.cards_number.append((len(player.cards)+1, choosen_card))
                         print(f'Now {player.name}, these are your cards \n{player.cards} and you carry on your turn.')
                     
                     if used_card == 'Cat Cards':
-                       cat_cards = [el for el in player.cards_number if el[1] == 'Cat Cards']
+                       cat_cards = [(i+1,player.cards[i]) for i in range(len(player.cards)) if player.cards[i] == 'Cat Cards']
                        if len(cat_cards) == 0:
                            print('To use this card you should have at least 2 cat cards in your hand!')
                            player.cards.append(used_card)
-                           player.cards_number.append((len(player.cards)+1, used_card))
                            #ask to use another card?
 
                        elif len(cat_cards) == 1:
-                            print(f'Which other card do you want to use? [Reply with a number]\n\nYour cards are {player.cards_number}')
+                            print(f'Which other card do you want to use? [Reply with a number]\n\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                             y = int(input()) 
                             player.cards.pop(y-1)
-                            player.cards_number.pop(y-1)
                             #choosing the player to which ask the card
                             players_number_names = [(el[0], el[1].name) for el in players_number]
                             print(f"Players are \n{players_number_names}. \nWhich player should give you a card? [Reply with a number]")
@@ -260,17 +261,14 @@ class Match:
                                 x = int(input())
                                 choosen_card = player_choosen.cards.pop(x-1)
                                 print(f"You've picked {choosen_card}")
-                                player_choosen.cards_number.pop(x-1)
                                 player.cards.append(choosen_card)
-                                player.cards_number.append((len(player.cards)+1, choosen_card))
                                 print(f'Now {player.name}, these are your cards \n{player.cards}\n and you carry on your turn.')
 
                        else:
-                            print(f'Which card do you want to use? [Reply with two comma separated numbers]\n\nYour cards are {player.cards_number}')
+                            print(f'Which card do you want to use? [Reply with two comma separated numbers]\n\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                             y = input().split(',')
                             for i in range(2):
                                 player.cards.pop(int(y[i])-1)
-                                player.cards_number.pop(int(y[i])-1)
                             #choosing the player to which ask the card
                             players_number_names = [(el[0], el[1].name) for el in players_number]
                             print(f"Players are \n{players_number_names}. \nWhich player should give you a card? [Reply with a number]")
@@ -288,7 +286,6 @@ class Match:
                                 if choosen_card in player_choosen.cards:
                                     player_choosen.cards.pop(player_choosen.cards.index(choosen_card))
                                     player.cards.append(choosen_card)
-                                    player.cards_number.append((len(player.cards)+1, choosen_card))
                                     print(f'Now {player.name}, these are your cards \n{player.cards}\n and you carry on your turn.')
                                 else:
                                     print(f"{player_choosen.name} doesn't have this card!")
@@ -311,9 +308,28 @@ class Match:
                 #must extract a card
         if self.deck.deck: #extracting a card from the deck and checking it
             card = self.deck.deck.pop(0)
-            print(f'The extracted card is {card}')
+            if card == 'Exploding Kitten':
+                print('YOU EXPLODED!')
+                if 'Defuser' in player.cards:
+                    print('You must use your Defuser!')
+                    index = player.cards.index('Defuser')
+                    player.cards.pop(index)
+                    print(f'Now your cards are {player.cards}')
+                    print(f'You have to put the Exploding kitten back in the deck of cards. The deck has {len(self.deck.deck)} cards. \nIn which position do you want to put the bomb? [Reply with a number]')
+                    x = int(input())
+                    while x not in range(1, len(self.deck.deck)+1):
+                        print('Not a position in the deck!')
+                        print('In which position do you want to put the bomb? [Reply with a number]')
+                        x = int(input())
+                    self.deck.show_deck()
+                    self.deck.add_card('Exploding Kitten', x)
+                    self.deck.show_deck()
+                else:
+                    print("You don't have any more Defusers! You lost!")
+                    self.players.pop(player)
+                    return 
+                print(f'The extracted card is {card}')
             player.cards.append(card)
-            player.cards_number.append((len(player.cards_number)+1, card))
         else:
             print('No more cards')
 
@@ -328,3 +344,7 @@ class Match:
             player.show_cards()
         else:
             print('All right!')
+
+
+        # def play(self):
+            
