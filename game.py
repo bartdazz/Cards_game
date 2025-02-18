@@ -1,8 +1,7 @@
 import random
 # to add:
 # after playing Favor the opther player should be able to use a Nope
-# after removing a card I should re index [(i+1, player.cards[i]) for i in range(len(player.cards))]
-
+# What to do if a player has to extract a card but there aren't any more cards in the deck?
 class Deck:
     def __init__(self, game):
         if game == 'two_players':
@@ -138,28 +137,40 @@ class Match:
                     print(f'Do you want to use one of your cards? [y/n]\n\nYour cards are \n{player.cards}')
                     answer = input()
                 
-                #Yes as answer. Use a card: update the player's cards and the table's cards
+                # Yes as answer. Use a card: update the player's cards and the
+                # table's cards
                 if answer == 'y':
                     print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                     y = int(input())
                     used_card = player.cards.pop(y-1)
+                    used_cards = [used_card]    # this list contains the cards
+                                                # played by the current player 
                     self.table.attack_cards.append(used_card)
                     print(f'Now your cards are \n{player.cards}')
 
                     print('Do you want to use another card? [y/n]')
                     answer = input()
                     while answer != 'n':
-                        print(f'Which card do you want to use? [Reply with a number]\n\nYour cards are \n{[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
+                        print(f'Which card do you want to use? (Please in this case reply y just if you want to use Nope or Attack) [Reply with a number]\n\nYour cards are \n{[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                         y = int(input())
                         used_card = player.cards.pop(y-1)
                         self.table.attack_cards.append(used_card)
                         print(f'Now your cards are \n{player.cards}')
                         print('Do you want to use another card? [y/n]')
                         answer = input()
+                    
+                    if used_card == 'Attack':
+                        return    #This player's turn is over
+                    else:    # the player uses Nope
+                        number_of_nope = sum([1 for x in used_cards if x == 'Nope'])
+                        if (number_of_nope < len(self.table.attack_cards)
+                            and 'Attack' in self.table.attack_cards):
+                            
 
-                    return    #This player's turn is over
+                        # else : number_of_nope == number of attack_cards
 
-                else:    #Player doesn't use any of his cards
+                else:    
+                    #Player doesn't use any of his cards
                     #take twice as many cards as the number of the attack cards
                     #I have to sum 1 bcs I've popped one 'Attack' card
                     n_attack = 1 + sum([1 for card in self.table.attack_cards if card == 'Attack'])
@@ -263,8 +274,8 @@ class Match:
                                 choosen_card = player_choosen.cards.pop(x-1)
                                 print(f"You've picked {choosen_card}")
                                 player.cards.append(choosen_card)
-                                print(f'Now {player.name}, these are your cards \n{player.cards}\n and you carry on your turn.')
-
+                                # print(f'Now {player.name}, these are your cards \n{player.cards}\n and you carry on your turn.')
+                                # the previous command is unuseful since the player sees again his card when the while loop begins again
                        else:
                             print(f'Which card do you want to use? [Reply with two comma separated numbers]\n\nYour cards are {[(i+1, player.cards[i]) for i in range(len(player.cards))]}')
                             y = input().split(',')
